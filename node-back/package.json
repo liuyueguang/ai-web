@@ -1,14 +1,15 @@
 {
   "name": "relay",
   "version": "1.0.50",
+  "type": "module",
   "scripts": {
-    "dev": "bun run --watch main.js",
-    "prod": "bun run main.js"
+    "dev": "node --watch main.js",
+    "prod": "node main.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.99.0",
-    "@elysiajs/cors": "^1.4.2",
-    "elysia": "^1.4.28",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
     "superagent": "^10.3.0"
   }
 }
