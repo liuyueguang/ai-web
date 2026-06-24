@@ -46,7 +46,7 @@ vite.config.js          # React + Tailwind CSS 插件配置
 
 | 接口 | 用途 |
 |---|---|
-| `http://8.153.100.148:13010/api/chat` | 主要 AI 后端——处理图像分析及文本生成 |
+| `http://120.26.44.144/13010/api/chat` | 主要 AI 后端——处理图像分析及文本生成 |
 | `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent` | TTS 语音合成（当前在 UI 中已注释） |
 | `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent` | 光环星座生成（已定义，但实际使用的是 `/api/chat`） |
 

@@ -3,8 +3,8 @@ import {Camera, Upload, Play, Loader2, MessageCircle, X, Send, Moon, Sparkles, V
 
 // --- API Configurations ---
 const apiKey = ""; // API key is injected by the environment
-// const host = "http://127.0.0.1:13010"
-const host = "http://8.153.100.148:13010"
+const host = "http://127.0.0.1:13010"
+// const host = "http://120.26.44.144:13010"
 
 // Helper: Exponential Backoff for API calls
 async function fetchWithRetry(url, options, maxRetries = 5) {

@@ -1,104 +1,97 @@
-import Elysia from 'elysia';
-import Anthropic from "@anthropic-ai/sdk";
-import cors from "@elysiajs/cors";
+import express from 'express';
+import cors from 'cors';
+import Anthropic from '@anthropic-ai/sdk';
 import superagent from 'superagent';
 
-const API_KEY = 'sk-xxxxx'
+const API_KEY = 'sk-82780589650c4543a2595d5fabbbe384';
 
+const app = express();
+const PORT = 13010;
 
-async function chat({body}) {
-    const {image, prompt} = body || {};
+// 中间件
+app.use(cors({ origin: '*' }));
+app.use(express.json({ limit: '50mb' })); // 支持大的 base64 图片
+
+// 聊天接口
+app.post('/api/chat', async (req, res) => {
+    const { image, prompt } = req.body || {};
 
     const anthropic = new Anthropic({
         apiKey: API_KEY,
-        baseURL: "https://dashscope.aliyuncs.com/apps/anthropic",
+        baseURL: 'https://dashscope.aliyuncs.com/apps/anthropic',
     });
 
     try {
         let content = [{
-            type: "text",
-            text: prompt
-        }]
-        if (image) content.unshift({
-            type: "image",
-            source: {
-                type: "base64",
-                media_type: "image/jpeg",
-                data: image
-            },
-        })
-
+            type: 'text',
+            text: prompt,
+        }];
+        if (image) {
+            content.unshift({
+                type: 'image',
+                source: {
+                    type: 'base64',
+                    media_type: 'image/jpeg',
+                    data: image,
+                },
+            });
+        }
 
         const response = await anthropic.messages.create({
-            model: "qwen3.6-plus",
+            model: 'qwen3.7-plus',
             max_tokens: 2048,
             stream: false,
             messages: [{
-                role: "user",
-                content
+                role: 'user',
+                content,
             }],
-            thinking: {type: "disabled"},
+            thinking: { type: 'disabled' },
         });
 
         const fullText = response.content.at(-1).text;
 
-        return new Response(fullText, {
-            headers: {'Content-Type': 'application/json'}
-        });
+        res.json({ data: fullText });
     } catch (error) {
-        return new Response(JSON.stringify({error: error.message}), {
-            status: 500,
-            headers: {'Content-Type': 'application/json'}
-        });
+        res.status(500).json({ error: error.message });
     }
-}
+});
 
-
-async function tts({body}) {
+// TTS 接口
+app.post('/api/tts', async (req, res) => {
     try {
-        const {text, lang} = body || {};
+        const { text, lang } = req.body || {};
 
-        let apiData = {
-            model: "cosyvoice-v3-flash",
+        const apiData = {
+            model: 'cosyvoice-v3-flash',
             input: {
-                text: text,
-                voice: "longyingtao_v3",
-                format: "wav",
+                text,
+                voice: 'longyingtao_v3',
+                format: 'wav',
                 sample_rate: 24000,
-                language_hints: [lang]
-            }
-        }
-        let headers = {
-            'Authorization': `Bearer ${API_KEY}`,
-            'Content-Type': 'application/json'
-        }
+                language_hints: [lang],
+            },
+        };
+        const headers = {
+            Authorization: `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
+        };
 
-        let requestUrl = 'https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer'
-        const response = await superagent.post(requestUrl).send(apiData).set(headers)
+        const requestUrl = 'https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer';
+        const response = await superagent.post(requestUrl).send(apiData).set(headers);
 
-        let url = response.body?.output?.audio?.url
-        if (!url) throw new Error('生成失败！')
+        const url = response.body?.output?.audio?.url;
+        if (!url) throw new Error('生成失败！');
 
-        return new Response(JSON.stringify({
+        res.json({
             data: url,
-            format: "wav",
-            sample_rate: 24000
-        }), {
-            headers: {'Content-Type': 'application/json'}
+            format: 'wav',
+            sample_rate: 24000,
         });
     } catch (error) {
-        return new Response(JSON.stringify({error: error.message}), {
-            status: 500,
-            headers: {'Content-Type': 'application/json'}
-        });
+        res.status(500).json({ error: error.message });
     }
-}
+});
 
-const app = new Elysia().use(cors({origin: '*'}))
-const PORT = 13010;
-
-app.post('/api/chat', chat);
-app.post('/api/tts', tts);
-
-app.listen(PORT);
-console.log(`🦊 Elysia is running at on port ${app.server?.port}...`);
+app.listen(PORT, () => {
+    console.log(`🚀 Express is running at http://localhost:${PORT}`);
+});
